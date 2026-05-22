@@ -157,8 +157,6 @@ extern "C" void restart()
 
 int main()
 {
-    // glfw: initialize and configure
-    // ------------------------------
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -168,8 +166,6 @@ int main()
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    // glfw window creation
-    // --------------------
     GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "hello", NULL, NULL);
     if (window == NULL)
     {
@@ -182,8 +178,6 @@ int main()
     glfwSetScrollCallback(window, [](GLFWwindow *, double, double dy)
                           { settings.radius = std::clamp(settings.radius + (float)dy * 5.0f, 5.0f, 300.0f); });
 
-    // glad: load all OpenGL function pointers
-    // ---------------------------------------
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         std::cout << "Failed to initialize GLAD" << std::endl;
@@ -197,10 +191,7 @@ int main()
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     const char *glsl_version = "#version 330";
     ImGui_ImplOpenGL3_Init(glsl_version);
-    // compile shaders
-    // ---------------
     shaderProgram = createProgram(vertexShaderSource, fragmentShaderSource);
-    // retrieve uniform locations and bind sampler
     glUseProgram(shaderProgram);
     {
         GLint loc = glGetUniformLocation(shaderProgram, "ushader");
@@ -216,8 +207,6 @@ int main()
         }
     }
     glUseProgram(0);
-    // -----------
-    //float mindiverror = 1000.0f;
 
     settings.w = w;
     settings.h = h;
@@ -282,8 +271,7 @@ int main()
         draw();
         ui();
 
-        // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
-        // -------------------------------------------------------------------------------
+
         glfwSwapBuffers(window);
         double elapsed = currentTime - fpsclock;
         fpsclock = currentTime;
@@ -305,9 +293,6 @@ int main()
         glfwPollEvents();
     }
 
-    // glfw: terminate, clearing all previously allocated GLFW resources.
-    // ------------------------------------------------------------------
-    // Cleanup OpenGL resources
     if (VAO)
     {
         glDeleteVertexArrays(1, &VAO);
@@ -340,8 +325,6 @@ int main()
     return 0;
 }
 
-// process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
-// ---------------------------------------------------------------------------------------------------------
 void processInput(GLFWwindow *window)
 
 {
@@ -353,12 +336,8 @@ void processInput(GLFWwindow *window)
    
 }
 
-// glfw: whenever the window size changed (by OS or user resize) this callback function executes
-// ---------------------------------------------------------------------------------------------
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 {
-    // make sure the viewport matches the new window dimensions; note that width and
-    // height will be significantly larger than specified on retina displays.
     currentW = width;
     currentH = height;
 
