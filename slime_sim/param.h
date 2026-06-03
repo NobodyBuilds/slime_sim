@@ -9,12 +9,17 @@ struct param {
 	float fuc_ms = 0.0f;
 	float tilesize = 5.0f;
 	float radius = 50.0f;
-	float	sensorAngle = 0.4f;
-	float	sensorDistance = 9.0f;
-	float	turnSpeed = 0.3f;
-	float	stepSize = 1.5f;
+	float	sensorAngle = 0.36f;
+	float	sensorAngleMax = 0.45f;
+	float	sensorDistance = 8.60f;
+	float	sensorDistanceMax = 9.40f;
+	float	turnSpeed = 0.27f;
+	float	turnSpeedMax = 0.34f;
+	float	stepSize = 1.4f;
+	float	stepSizeMax = 1.64f;
 	float	decayFactor = 0.96f;
-	float	depositAmount = 5.0f;
+	float	depositAmount = 4.95f;
+	float	depositAmountMax = 5.0f;
 	float diffusionweight = 0.2f;
 
 	unsigned int time;

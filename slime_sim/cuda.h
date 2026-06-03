@@ -12,6 +12,8 @@ extern "C" {
 	void copyparams();
 	void initcuda();
 	void freecuda();
+	void writegenomes();
+	void updategenome(int type, int var, float min, float max);
 
 #ifdef __cplusplus
 

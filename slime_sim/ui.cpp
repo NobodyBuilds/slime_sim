@@ -101,15 +101,41 @@ static void debug() {
         if (ImGui::IsItemDeactivatedAfterEdit()) { restart(); }
         
         ImGui::Spacing();
+        ImGui::Spacing();
+        ImGui::Spacing();
+        auto DragFloatRange = [&](const char* label, const char* idMin, float* vMin, const char* idMax, float* vMax, float speed, float minVal, float maxVal) {
+            ImGui::TextDisabled("%s", label);
 
+            float shareWidth = ImGui::GetContentRegionAvail().x * 0.5f - ImGui::GetStyle().ItemSpacing.x * 0.5f;
 
-       sync |= ImGui::DragFloat("sensor angle", &settings.sensorAngle, 0.01f, 0.f, 50.0f, "%.2f");
-       sync |= ImGui::DragFloat("sensor distance", &settings.sensorDistance, 0.1f, 0.f, 50.0f, "%.2f");
-       sync |= ImGui::DragFloat("turn speed", &settings.turnSpeed, 0.01f, 0.f, 5.0f, "%.2f");
-       sync |= ImGui::DragFloat("step size", &settings.stepSize, 0.01f, 0.f, 50.0f, "%.2f");
-       sync |= ImGui::DragFloat("depsoit amount", &settings.depositAmount, 0.01f, 0.f, 50.0f, "%.2f");
-       sync |= ImGui::DragFloat("diffusion ", &settings.diffusionweight, 0.01f, 0.f, 50.0f, "%.2f");
+            ImGui::SetNextItemWidth(shareWidth);
+            bool changed = ImGui::DragFloat(idMin, vMin, speed, minVal, maxVal, "Min: %.2f");
+
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth(-FLT_MIN);
+            changed |= ImGui::DragFloat(idMax, vMax, speed, minVal, maxVal, "Max: %.2f");
+
+            return changed;
+            };
+
+        
+        if (sync |= DragFloatRange("Sensor Angle", "##aMin", &settings.sensorAngle, "##aMax", &settings.sensorAngleMax, 0.01f, 0.f, 50.f)) {
+        
+			updategenome(1, 3, settings.sensorAngle, settings.sensorAngleMax);
+        }
+        if (sync |= DragFloatRange("Sensor Distance", "##dMin", &settings.sensorDistance, "##dMax", &settings.sensorDistanceMax, 0.1f, 0.f, 50.f)) {
+			updategenome(1, 4, settings.sensorDistance, settings.sensorDistanceMax);
+
+       }
+       if( sync |= DragFloatRange("Turn Speed", "##tMin", &settings.turnSpeed, "##tMax", &settings.turnSpeedMax, 0.01f, 0.f, 5.f)){updategenome(2,2, settings.turnSpeed, settings.turnSpeedMax); }
+       if( sync |= DragFloatRange("Step Size", "##sMin", &settings.stepSize, "##sMax", &settings.stepSizeMax, 0.01f, 0.f, 50.f)){updategenome(2,3, settings.stepSize, settings.stepSizeMax); }
+       if( sync |= DragFloatRange("Deposit Amount", "##depMin", &settings.depositAmount, "##depMax", &settings.depositAmountMax, 0.01f, 0.f, 50.f)){updategenome(2,4, settings.depositAmount, settings.depositAmountMax); }
+  
+		sync |= ImGui::DragFloat("Decay Factor", &settings.decayFactor, 0.001f, 0.f, 1.f, "%.3f");
+		sync |= ImGui::DragFloat("difusion Factor", &settings.diffusionweight, 0.01f, 0.f, 10.f, "%.3f");
+
     }
+    
 
  
 

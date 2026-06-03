@@ -146,6 +146,7 @@ extern "C" void restart()
     copyparams();
     initshader();
     initcuda();
+    writegenomes();
     registerBuffer(TEX);
     updateframe();
 
@@ -214,6 +215,7 @@ int main()
     initshader();
     initcuda();
     copyparams();
+    writegenomes();
     registerBuffer(TEX);
     double lastTime = glfwGetTime();
     double fpsclock = lastTime;
