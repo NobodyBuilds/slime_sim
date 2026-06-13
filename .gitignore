@@ -361,3 +361,21 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+glfw-3.4.bin.WIN64*/
+imgui-1.91.1*/
+glm-1.0.2*/
+glad/
+external/
+vendor/
+libs/
+.vscode/
+
+# Binaries
+*.exe
+*.dll
+*.lib
+*.sln
+*.cubin
+*.fatbin
+*.ptx

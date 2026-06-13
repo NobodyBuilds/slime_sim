@@ -7,7 +7,7 @@ struct param {
 	float minFps = 0.0f;
 	float avgFps = 0.0f;
 	float fuc_ms = 0.0f;
-	float tilesize = 5.0f;
+	float tilesize = 1.0f;
 	float radius = 50.0f;
 	float	sensorAngle = 0.36f;
 	float	sensorAngleMax = 0.45f;
@@ -23,7 +23,7 @@ struct param {
 	float diffusionweight = 0.2f;
 
 	unsigned int time;
-	int n = 100;
+	int n = 100000;
 	int ncopy = 100;
 	int fpsCount = 0;
 	int w = 0, h = 0;

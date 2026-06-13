@@ -25,12 +25,11 @@ const char* fragmentShaderSource = "#version 330 core\n"
 "{\n"
 
 "vec2 uv= gl_FragCoord.xy / uresolution;"
-" float val = texture(ushader, uv).r;"
-
+" vec3 val = texture(ushader, uv).rgb;"
 
 
 
 //"if(val <=0){"
-"   FragColor = vec4(val+0.f,val+0.f,val+0.f, 1.0f);\n"
+"   FragColor = vec4(val, 1.0f);\n"
 //"else{FragColor=vec4(val+pos.x,val+pos.y,val+pos.z, 1.0f);}"
 "}\n\0";

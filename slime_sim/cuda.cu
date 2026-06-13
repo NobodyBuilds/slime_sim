@@ -83,10 +83,7 @@ __global__ void fillKernel(cudaSurfaceObject_t surf, int w, int h,float4* color)
     int y = blockIdx.y * blockDim.y + threadIdx.y;
     if (x >= w || y >= h) return;
 	float4 val = color[y * w + x];
-    surf2Dwrite(val.x, surf, x * sizeof(float), y);
-    surf2Dwrite(val.y, surf, x * sizeof(float), y);
-    surf2Dwrite(val.z, surf, x * sizeof(float), y);
-    surf2Dwrite(val.w, surf, x * sizeof(float), y);
+	surf2Dwrite(val, surf, x * sizeof(float4), y);
 }
 
 extern "C" void updateframe() {
@@ -142,7 +139,16 @@ extern "C" void copyparams() {
 	else printf("params copied\n");
 
 }
-
+__device__ unsigned int hash(unsigned int state)
+{
+	state ^= 2747636419u;
+	state *= 2654435769u;
+	state ^= state >> 16;
+	state *= 2654435769u;
+	state ^= state >> 16;
+	state *= 2654435769u;
+	return state;
+}
 __device__ float randf(uint32_t seed, float mn, float mx)
 {
 	seed ^= seed << 13;
@@ -153,24 +159,23 @@ __device__ float randf(uint32_t seed, float mn, float mx)
 __global__ void initAgents(float4* data1, float4* data2, float4* data3, float4* data4, int n,float samax,float sdmax,float tsmax,float damax,float msmax) {
 	int id = blockIdx.x * blockDim.x + threadIdx.x;
 	if (id >= n) return;
-	
-	float sensorangle = randf(0.0f,params.sensorAngle,samax);
-	float sensordist = randf(0.0f, params.sensorDistance, sdmax);
-	float turnspeed = randf(0.0f, params.turnSpeed, tsmax);
-	float depositammount = randf(0.0f, params.depositAmount, damax);
-	float movespeed = randf(0.0f, params.stepSize, msmax);
+	uint32_t s = hash((unsigned int)id);
+	float sensorangle = randf(s+1,params.sensorAngle,samax);
+	float sensordist = randf(s+2, params.sensorDistance, sdmax);
+	float turnspeed = randf(s+3, params.turnSpeed, tsmax);
+	float depositammount = randf(s+4, params.depositAmount, damax);
+	float movespeed = randf(s+5, params.stepSize, msmax);
 
-
-	float poisonsense = randf(0.0f, 0.0f, 1.0f);
-	float aggression = randf(0.0f, 0.0f, 1.0f);
-	float threshold = randf(0.0f,40.0f , 200.0f);
-	float foodA = randf(0.0f, 0.0f, 1.0f);
-	float foodB = randf(0.0f, 0.0f, 1.0f);
-	float foodC = randf(0.0f, 0.0f, 1.0f);
-	float foodD = randf(0.0f, 0.0f, 1.0f);
-	float px = randf(0.0f, 0.0f, (float)params.w);
-	float py = randf(0.0f, 0.0f, (float)params.h);
-	float angle = randf(0.0f, 0.0f, 6.2831f);
+	float poisonsense = randf(s+6, 0.0f, 1.0f);
+	float aggression = randf(s+7, 0.0f, 1.0f);
+	float threshold = randf(s+8, 0.0f, 40.0f);
+	float foodA = randf(s+9, 0.0f, 1.0f);
+	float foodB = randf(s+10, 0.0f, 1.0f);
+	float foodC = randf(s+11, 0.0f, 1.0f);
+	float foodD = randf(s+12, 0.0f, 1.0f);
+	float px = randf(s+13, 0.0f, (float)params.w);
+	float py = randf(s+14, 0.0f, (float)params.h);
+	float angle = randf(s+15, 0.0f, 6.2831f);
 
 
 	data1[id] = { px, py, sensorangle, sensordist }; 
@@ -216,38 +221,30 @@ extern "C" void updategenome(int type,int var,float min,float max) {
 
 }
 
+__device__ float clamp(float val, float min, float max) {
+	if (val < min) val = min;
+	if (val > max) val = max;
+	return val;
 
+}
 __device__ float sampleTrail(float4* trail, float x, float y, int W, int H)
 {
 	int px = max(0, min(W - 1, (int)x));
 	int py = max(0, min(H - 1, (int)y));
 	return trail[py * W + px].w;
 }
+__device__ float3 genomeToColor(float4 d4) {
 
+	float r = d4.x;
+	float g = d4.y;
+	float b = d4.z;
 
-__device__ unsigned int hash(unsigned int state)
-{
-	state ^= 2747636419u;
-	state *= 2654435769u;
-	state ^= state >> 16;
-	state *= 2654435769u;
-	state ^= state >> 16;
-	state *= 2654435769u;
-	return state;
-}
-
-__device__ float3 genomeToColor(float4 d2, float4 d4) {
-	
-	float r = d2.z / 2.2f;        // move_speed normalized
-	float g = d4.x;               // food_A affinity
-	float b = d4.z;               // food_C affinity
 	return make_float3(r, g, b);
 }
 __global__ void agentKernel(
 	    
 	float4* trailMap, unsigned int time, float4* data1, float4* data2, float4* data3, float4* data4
-	)
-{
+	){
 	int id = blockIdx.x * blockDim.x + threadIdx.x;
 	if (id >= params.n) return;
 	
@@ -260,7 +257,6 @@ __global__ void agentKernel(
 	float stepsize = __ldg(&data2[id].z);
 	float depositAmount = __ldg(&data2[id].w);
 	
-	//choose dir
 	float angleFL = angle + sensorAngle;
 	float angleFR = angle - sensorAngle;
 	float2 sF = { pos.x + cosf(angle) * sensorDist,
@@ -290,7 +286,6 @@ __global__ void agentKernel(
 	else {
 		angle += randSign * turnSpeed;
 	}
-	//intigate
 	pos.x += cosf(angle) * stepsize;
 	pos.y += sinf(angle) * stepsize;
 
@@ -299,7 +294,7 @@ __global__ void agentKernel(
 
 	int px = max(0, min(params.w - 1, (int)pos.x));
 	int py = max(0, min(params.h - 1, (int)pos.y));
-	float3 col = genomeToColor(data2[id], data4[id]); // derive color from genome
+	float3 col = genomeToColor(data4[id]);
 
 	
 	atomicAdd(&trailMap[py * params.w + px].x, col.x* depositAmount);
@@ -352,6 +347,9 @@ __global__ void diffuseDecayKernel(
 	diffused.y = original.y + (blurred.y - original.y) * params.diffusionweight;
 	diffused.z = original.z + (blurred.z - original.z) * params.diffusionweight;
 	diffused.w = original.w + (blurred.w - original.w) * params.diffusionweight;
+
+	
+
 
 	trailOut[y * params.w + x].x = fminf(diffused.x * params.decayFactor, 1.0f);
 	trailOut[y * params.w + x].y = fminf(diffused.y * params.decayFactor, 1.0f);
